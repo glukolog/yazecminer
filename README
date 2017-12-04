@@ -7,6 +7,11 @@ The aim was the pure C miner with no dependencies, that works of either
 little-endian or big-endian platform (ultrasparc speed is so pathetic).
 
 c/ is portable C sources to produce binary for your platform.
+Build:
+    edit config.h & Makefile to choose you algoritm and platform
+    make clean
+    make # compile default miner equihash 200 9
+    make yaz96 # will compile miner for equihash 96 5 algo
 
 js-emscripten/ is a port to emscipten for mining in WebAssembly-compatible
 browser

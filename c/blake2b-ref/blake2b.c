@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "config.h"
 #include "blake2b.h"
 
 static const uint64_t		blake2b_IV[8] = {
@@ -172,9 +173,16 @@ blake2b_zcash (blake2b_state *S, uint32_t w3, uint8_t *out) {
 	ROUND (10);
 	ROUND (11);
 
+#ifdef USE_EQUIHASH_200_9
 	for (i = 0; i < 6; i++)
 		((uint64_t *)out)[i] = S->h[i] ^ v[i] ^ v[i + 8];
 	*(uint16_t *)(out + 48) = (uint16_t)S->h[6] ^ v[6] ^ v[14];
+#endif
+
+#ifdef USE_EQUIHASH_96_5
+	for (i = 0; i < 8; i++)
+		((uint64_t *)out)[i] = S->h[i] ^ v[i] ^ v[i + 8];
+#endif
 }
 
 #undef G

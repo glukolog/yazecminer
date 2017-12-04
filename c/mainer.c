@@ -15,16 +15,31 @@
 #include <errno.h>
 #include <time.h>
 
+#include "config.h"
 #include "jsmn/jsmn.h"
 #include "sha256/sha256.h"
 #include "blake2b.h"
+
+#ifdef USE_EQUIHASH_200_9
 #include "equihash.h"
+#endif
+
+#ifdef USE_EQUIHASH_96_5
+#include "eq96_5.h"
+#endif
 
 #define INTERRUPT		1
 #define STAT_ALPHA		0.1
 #define NONCE_MAXLEN		24
 
+#ifdef USE_EQUIHASH_200_9
 #define VERSION			"04000000"
+#endif
+
+#ifdef USE_EQUIHASH_96_5
+#define VERSION			"00000020"
+#endif
+
 #define BUF_SIZE		8192
 #define JSON_TOKENS_MAX		64
 #define TIME_STAT_PERIOD	15
@@ -324,6 +339,13 @@ json_do_response (int id) {
 			Log ("error 21 stale job not accepted");
 			return;
 		}
+		if (json_token[pos_error].type == JSMN_ARRAY &&
+		    json_token[pos_error].size > 1 &&
+		    json_num (pos_error + 1) == 23) {
+			Log ("23 Not accepted low diff");
+			return;
+		}
+
 		if (id == JSONRPC_ID_EXTRANONCE) {
 			Log ("ignoring error on extranonce, "
 			    "run with flag -N 0 if disconnected");
@@ -528,7 +550,7 @@ solution (void) {
 	stat_found++;
 	stat_found_cur++;
 	if (above_target ()) {
-		if (flag_debug)
+		if (flag_debug > 1)
 			printf ("above target\n");
 		return 0;
 	}
@@ -748,7 +770,7 @@ NEW_JOB:
 			flag_new_job = 0;
 			nonce2_reset ();
 		}
-		if (flag_debug > 0)
+		if (flag_debug > 1)
 			nonce2_print ();
 		stat_print ();
 		step0 (&block);
